@@ -30,14 +30,17 @@ class ConvAutoencoder(nn.Module):
             scale_factor=2, mode='bilinear', align_corners=False)
 
     def forward(self, x):
+        # Encode image
         x = F.leaky_relu(self.conv1(x))
         x = F.leaky_relu(self.conv2(x))
         x = F.leaky_relu(self.conv3(x))
         x = F.leaky_relu(self.conv4(x))
         x = F.leaky_relu(self.conv5(x))
 
+        # Obtain Latent Space Representation
         x_flat = torch.flatten(x, start_dim=1)
 
+        # Decode image
         x = F.leaky_relu(self.upconv1(x))
         x = self.t_up(x)
         x = F.leaky_relu(self.upconv2(x))
@@ -48,6 +51,7 @@ class ConvAutoencoder(nn.Module):
         x = self.t_up(x)
         x = F.leaky_relu(self.upconv5(x))
         x = self.t_up(x)
+
         return x, x_flat
 
     @staticmethod
@@ -100,17 +104,20 @@ class ConvAutoencoderWithHead(nn.Module):
             scale_factor=2, mode='bilinear', align_corners=False)
 
     def forward(self, x):
+        # Encode image
         x = F.leaky_relu(self.conv1(x))
         x = F.leaky_relu(self.conv2(x))
         x = F.leaky_relu(self.conv3(x))
         x = F.leaky_relu(self.conv4(x))
         x = F.leaky_relu(self.conv5(x))
 
+        # Obtain latent space representation and apply classifier
         x_flat = torch.flatten(x, start_dim=1)
         y = self.lin1(x_flat)
         y = self.lin2(y)
         y = self.softmax(y)
 
+        # Decode image
         x = F.leaky_relu(self.upconv1(x))
         x = self.t_up(x)
         x = F.leaky_relu(self.upconv2(x))
@@ -121,6 +128,7 @@ class ConvAutoencoderWithHead(nn.Module):
         x = self.t_up(x)
         x = F.leaky_relu(self.upconv5(x))
         x = self.t_up(x)
+
         return x, y, x_flat
 
     def forward_only_classifier(self, x_flat):
@@ -148,15 +156,35 @@ class ConvAutoencoderWithHead(nn.Module):
 
 
 def my_custom_mse(output, target, mask):
+    """Custom MSE applying loss only over masked area
+
+    Args:
+        output (torch Tensor): Model output reconstruction
+        target (torch Tensor): True image
+        mask (torch Tensor): True mask
+
+    Returns:
+        torch Tensor: MSE loss over mask area
+    """
     return torch.square(output-target).sum() / ((mask == 1).sum())
 
 
 def weighted_mse_loss(output, target, weight):
+    """Weighted MSE applying weights per-image
+
+    Args:
+        output (torch Tensor): Model output reconstruction
+        target (torch Tensor): True image
+        weight (torch Tensor): Weights to apply to each target
+
+    Returns:
+        torch Tensor: Weighted MSE loss
+    """
     return (weight * (output - target) ** 2).mean()
 
 
 def prepare_classification_head(pretrained_model="my_model.pth", device='cpu', hidden=256):
-    """_summary_
+    """Prepares an autoencoder with classification head from a pretrained one without
 
     Args:
         pretrained_model (str or ConvAutoencoder, optional): Pretrained autoencoder. Defaults to my_model.pth.
@@ -170,6 +198,7 @@ def prepare_classification_head(pretrained_model="my_model.pth", device='cpu', h
     with_head = ConvAutoencoderWithHead(hidden=hidden)
     with_head.apply(ConvAutoencoder.init_weights)
 
+    # Load weights
     if isinstance(pretrained_model, str):
         with_head.load_state_dict(torch.load(pretrained_model, map_location=device),
                                   strict=False)
@@ -177,4 +206,5 @@ def prepare_classification_head(pretrained_model="my_model.pth", device='cpu', h
         with_head.load_state_dict(pretrained_model.state_dict(), strict=False)
 
     with_head.to(device)
+
     return with_head
