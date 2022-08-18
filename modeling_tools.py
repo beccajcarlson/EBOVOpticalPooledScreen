@@ -11,7 +11,7 @@ BOUNDARIES = [-WIDTH, 0, WIDTH]
 
 
 def _unused_relabel(label):
-    """ Relabel the initial values provided to numerical 1-4
+    """Relabel the initial values provided to numerical 1-4
 
     Args:
         label (int): Value 1-4
@@ -34,7 +34,7 @@ def _unused_relabel(label):
 
 
 def approx_eq(a, b):
-    """ Determines if two values are approximately equal
+    """Determines if two values are approximately equal
 
     Within 1e-4 tolerance on either side
 
@@ -53,7 +53,7 @@ def relabel_for_regression(label):
 
 
 def relabel_for_regression_optimized(labels, label_max=4, label_min=1):
-    """ Relabels a set of labels in to the values prescribed by CENTERS
+    """Relabels a set of labels in to the values prescribed by CENTERS
 
     Args:
         labels (array): Labels to be reformatted
@@ -70,7 +70,7 @@ def relabel_for_regression_optimized(labels, label_max=4, label_min=1):
 
 
 def regression_correctness(truth, pred):
-    """ Determines the correctness of a regression prediction on a single sample
+    """Determines the correctness of a regression prediction on a single sample
 
     Correct is defined as the regression prediction falling into the bucket given by
     the ground truth.
@@ -93,7 +93,7 @@ def regression_correctness(truth, pred):
 
 
 def regression_label_preds(pred):
-    """ Takes a regression prediction and buckets it based on its value
+    """Takes a regression prediction and buckets it based on its value
 
     Potential values are 1, 2, 3, 4 based on prediction position relative
     to BOUNDARIES constant.
@@ -115,7 +115,7 @@ def regression_label_preds(pred):
 
 
 def humanize_pred(pred):
-    """ Take a regression prediction and make it readable
+    """Take a regression prediction and make it readable
 
     Takes regression predictions and rescales them such that
     the CENTERS become 1, 2, 3, 4
@@ -130,7 +130,7 @@ def humanize_pred(pred):
 
 
 def get_device():
-    """ Get torch device for model training 
+    """Get torch device for model training 
 
     Returns:
         str: torch device descriptor
