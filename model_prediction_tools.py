@@ -50,6 +50,7 @@ class CellsDataset(Dataset):
         # Load centers, images, masks
         sample_cells = np.load(centers_filename)
 
+        # Min-Max scale images across channels
         image = io.imread(img_filename).astype(np.float32)
         image /= np.max(image, axis=(1, 2))[:, np.newaxis, np.newaxis]
         mask = io.imread(mask_filename).astype(np.float32)

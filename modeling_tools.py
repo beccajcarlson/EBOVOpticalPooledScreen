@@ -130,7 +130,7 @@ def humanize_pred(pred):
 
 
 def get_device():
-    """Get torch device for model training 
+    """Get torch device for model training
 
     Returns:
         str: torch device descriptor
