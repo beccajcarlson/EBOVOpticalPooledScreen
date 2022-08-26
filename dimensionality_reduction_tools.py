@@ -1,8 +1,9 @@
 import umap
 import numpy as np
 
+from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, IncrementalPCA
 from scipy.spatial import cKDTree
 
 
@@ -53,7 +54,7 @@ def find_nearest_points(point_set, target, n_points=1):
     return q[-1], point_set[q[-1]]
 
 
-def getEquidistantPoints(p1, p2, total_pts):
+def get_equidistant_points(p1, p2, total_pts):
     """Gets equidistant points between two anchor points
 
     Adapted from: https://stackoverflow.com/a/47443126
@@ -67,3 +68,51 @@ def getEquidistantPoints(p1, p2, total_pts):
         array: Matrix of equidistant points, including endpoints
     """
     return np.array(list(zip(*[np.linspace(p1[i], p2[i], total_pts) for i in range(len(p1))])))
+
+
+def perform_incremental_pca(data_path, n_components=3, per_split=100000):
+    # Load dataset lazily, as needed
+    dataset = np.load(data_path, mmap_mode='r')
+    sklearn_pca = IncrementalPCA(n_components=n_components)
+
+    # Store PCA dimension-reduced features
+    pca_features = None
+
+    # Determine splits to use for PCA
+    splits = per_split * \
+        np.arange(1, len(dataset) // per_split).astype(int)
+
+    # Perform incremental partial-fits on chunks of the data
+    prev_split = 0
+    for split in tqdm(splits):
+        chunk = dataset[prev_split:split]
+        sklearn_pca.partial_fit(chunk)
+
+        prev_split = split
+
+    chunk = dataset[prev_split:]
+    sklearn_pca.partial_fit(chunk)
+
+    # Perform incremental dimensionality-reduction on chunks of the data
+    prev_split = 0
+    for split in tqdm(splits):
+        chunk = dataset[prev_split:split]
+        pca_chunk = sklearn_pca.transform(chunk)
+
+        if pca_features is None:
+            pca_features = pca_chunk
+        else:
+            pca_features = np.vstack((pca_features, pca_chunk))
+
+        prev_split = split
+
+    # Perform dimensionality reduction on the final chunk
+    chunk = dataset[prev_split:]
+    pca_chunk = sklearn_pca.transform(chunk)
+
+    if pca_features is None:
+        pca_features = pca_chunk
+    else:
+        pca_features = np.vstack((pca_features, pca_chunk))
+
+    return pca_features

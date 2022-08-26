@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import torch
+import pickle
 
 from skimage import io
 from torch.utils.data import DataLoader, Dataset
@@ -187,3 +188,55 @@ def extract_embeddings_and_labels(model, classifier=True,
         labels_npy[embeddings_idx] = labels
 
     return embeddings_npy, labels_npy
+
+
+def load_svm_classifier(path):
+    """Loads an SVM classifier from a path
+
+    Args:
+        path (str): Path to classifier
+
+    Returns:
+        sklearn SVM model: classifier
+    """
+    with open(path, 'rb') as f:
+        classifier = pickle.load(f)
+
+    return classifier
+
+
+def predict_svm(svm_classifier, feature_path, per_split=None):
+    """Performs prediction using SVM classifier on features
+
+    Can perform incremental prediction if needed for RAM constraints
+
+    Args:
+        svm_classifier (sklearn SVM): SVM classifier
+        feature_path (str): Path to numpy array containing features [n samples x d features]
+        per_split (int, optional): Number of samples per prediction split, if desired. Defaults to None.
+
+    Returns:
+        array: vector of SVM predictions for each sample
+    """
+    # Load features lazily, as needed
+    features = np.load(feature_path, mmap_mode="r")
+
+    # Store incremental predictions and most recent split
+    preds_ = []
+    prev_split = 0
+
+    if per_split is not None:
+        # If desired to split training into chunks, iterate over each chunk, predicting
+        splits = per_split * \
+            np.arange(1, len(features) // per_split).astype(int)
+        for split in tqdm(splits):
+            chunk = svm_classifier.predict(features[prev_split:split])
+            preds_.append(chunk)
+            prev_split = split
+
+    # Accumulate final chunk
+    chunk = svm_classifier.predict(features[prev_split:])
+    preds_.append(chunk)
+
+    # Concatenate all chunks and return predictions
+    return np.concatenate(preds_).astype(np.int8)
