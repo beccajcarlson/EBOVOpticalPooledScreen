@@ -127,12 +127,3 @@ def humanize_pred(pred):
         array or float: Rescaled predictions
     """
     return (pred + 5/2 * WIDTH) / WIDTH
-
-
-def get_device():
-    """Get torch device for model training
-
-    Returns:
-        str: torch device descriptor
-    """
-    return 'cuda:0' if torch.cuda.is_available() else 'cpu'

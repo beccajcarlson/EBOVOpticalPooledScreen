@@ -4,7 +4,7 @@ from tqdm import tqdm
 from skimage import io
 
 from torch.utils.data import DataLoader, Dataset
-from genome_wide import get_device
+from config_tools import get_device
 from raw_dataset_tools import fmt_dir
 from model import my_custom_mse
 
@@ -13,7 +13,7 @@ class UnsupervisedCellsDataset(Dataset):
     """Dataset for unsupervised cell image extraction from raw files
     """
 
-    def __init__(self, metadata, test=False, batch_size=256):
+    def __init__(self, metadata, rng=None, test=False, batch_size=256):
         """Initialize dataset
 
         metadata should contain each triple of ["plate", "well", "tile"] exactly once,
@@ -26,12 +26,18 @@ class UnsupervisedCellsDataset(Dataset):
 
         Args:
             metadata (pandas DataFrame): Dataframe containing columns ["plate", "well", "tile"]
+            rng (np.random.Generator, optional): Random number generator or None. Defaults to None.
             test (bool, optional): Whether metadata is test (True) or train (False). Defaults to False.
             batch_size (int, optional): Maximum size of each training batch. Defaults to 256.
         """
         self.batch_size = batch_size
         self.metadata = metadata
         self.test = test
+
+        if rng is None:
+            self.rng = np.random.default_rng()
+        else:
+            self.rng = rng
 
     def __len__(self):
         return len(self.metadata)
@@ -53,7 +59,7 @@ class UnsupervisedCellsDataset(Dataset):
 
         # If not a test dataset, select a random sample of cells as the batch
         if not self.test:
-            random_samples = np.random.choice(sample_cells.shape[0],
+            random_samples = self.rng.choice(sample_cells.shape[0],
                                               min(sample_cells.shape[0],
                                                   self.batch_size),
                                               replace=False)

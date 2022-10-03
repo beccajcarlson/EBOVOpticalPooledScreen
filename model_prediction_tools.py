@@ -8,7 +8,8 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 from raw_dataset_tools import fmt_dir
-from modeling_tools import get_device, humanize_pred
+from modeling_tools import humanize_pred
+from config_tools import get_device
 
 
 class CellsDataset(Dataset):
