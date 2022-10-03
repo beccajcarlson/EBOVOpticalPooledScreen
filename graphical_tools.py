@@ -10,6 +10,16 @@ from graphical_tools_helpers import _display_plot_values_labels,\
 
 
 def generate_heatmap(correct, predicted, save="heatmap.png"):
+    """Generates heatmap of correct vs predicted arrays
+
+    Args:
+        correct (array): Array of ground truth values
+        predicted (array): Array of predictions
+        save (str, optional): Path to save file, or None. Defaults to "heatmap.png".
+
+    Returns:
+        pyplot figure: Heatmap figure
+    """
     fig, ax = plt.subplots(figsize=(7, 7))
     sn.set(font_scale=1.4)
     sn.heatmap(confusion_matrix(correct, predicted),
@@ -35,6 +45,22 @@ def generate_heatmap(correct, predicted, save="heatmap.png"):
 def plot_utility_2d(points, df, unlabeled_point_color="model_preds",
                     labeled_point_color="ground_truth",
                     dim_red_alg="PCA", save="plot2d.png"):
+    """Plots a general set of cells with annotations in 2D
+
+    Args:
+        points (array): (# samples x 2) array of samples
+        df (pandas DataFrame): DataFrame of ground truth and model predictions
+        unlabeled_point_color (str, optional): Color of unlabeled points.
+            Expects one of {"model_preds", "gray"}. Defaults to "model_preds".
+        labeled_point_color (str, optional): Color of labeled points.
+            Expects one of {"ground_truth", "model_preds"}. Defaults to "ground_truth".
+        dim_red_alg (str, optional): Algorithm used to reduce data dimension.
+            Defaults to "PCA".
+        save (str, optional): Path to save file, or None. Defaults to "plot2d.png".
+
+    Returns:
+        pyplot figure: 2D figure
+    """
     assert (unlabeled_point_color in {"model_preds", "gray"}),\
         "Pick one of 'model_preds' for model predictions or 'gray'"
 
@@ -47,7 +73,6 @@ def plot_utility_2d(points, df, unlabeled_point_color="model_preds",
 
     fig, ax = plt.subplots(figsize=(7, 7))
 
-    # ax.scatter(pca_output[:, 0], pca_output[:, 1], s=5, c='b')
     ax.set_ylabel(f"{dim_red_alg} Component 2")
     ax.set_xlabel(f"{dim_red_alg} Component 1")
 
@@ -102,6 +127,19 @@ def plot_utility_2d(points, df, unlabeled_point_color="model_preds",
 
 def plot_phenotype_countplot(series, values_on_bars=None, is_pct=False,
                              save="countplot.png"):
+    """Plots a countplot of phenotpyes from a series
+
+    Args:
+        series (pandas Series): Series of phenotypes
+        values_on_bars (array, optional): Array of values to print on bars or None.
+            Defaults to None.
+        is_pct (bool, optional): Whether the values_on_bars are percentages
+            (adds a % symbol). Defaults to False.
+        save (str, optional): Path to save file, or None. Defaults to "countplot.png".
+
+    Returns:
+        pyplot figure: Phenotype countplot figure
+    """
     fig, ax = plt.subplots(figsize=(7, 5))
     sn.countplot(x=series, ax=ax)
 
@@ -118,6 +156,23 @@ def plot_phenotype_countplot(series, values_on_bars=None, is_pct=False,
 def plot_phenotype_barplot(df, x_col="index", y_col="model_pred",
                            values_on_bars=None, is_pct=False,
                            save="pheno_barplot.png"):
+    """Plots a barplot of phenotpyes from a series
+
+    Args:
+        df (pandas DataFrame): DataFrame of information to plot on bars
+        x_col (str, optional): DataFrame column corresponding to x-axis.
+            Defaults to "index".
+        y_col (str, optional): DataFrame column corresponding to y-axis.
+            Defaults to "model_pred".
+        values_on_bars (array, optional): Array of values to print on bars or None.
+            Defaults to None.
+        is_pct (bool, optional): Whether the values_on_bars are percentages
+            (adds a % symbol). Defaults to False.
+        save (str, optional): Path to save file, or None. Defaults to "pheno_barplot.png".
+
+    Returns:
+        pyplot figure: Phenotype barplot figure
+    """
     fig, ax = plt.subplots(figsize=(7, 5))
     sn.barplot(data=df, x=x_col, y=y_col, ax=ax)
 
@@ -135,6 +190,24 @@ def plot_gene_distribution_barplot(df, x_col="gene_symbol", y_col="pct",
                                    values_on_bars=None, is_pct=False,
                                    phenotype="Faint",
                                    save="gene_barplot.png"):
+    """_summary_
+
+    Args:
+        df (pandas DataFrame): DataFrame of information to plot on bars
+        x_col (str, optional): DataFrame column corresponding to x-axis.
+            Defaults to "gene_symbol".
+        y_col (str, optional): DataFrame column corresponding to y-axis.
+            Defaults to "pct".
+        values_on_bars (array, optional): Array of values to print on bars or None.
+            Defaults to None.
+        is_pct (bool, optional): Whether the values_on_bars are percentages
+            (adds a % symbol). Defaults to False.
+        phenotype (str, optional): Which phenotype is being featured. Defaults to "Faint".
+        save (str, optional): Path to save file, or None. Defaults to "gene_barplot.png".
+
+    Returns:
+        pyplot figure: Gene distribution barplot figure
+    """
     assert phenotype in PHENOTYPES, f"Must choose one of {PHENOTYPES} as phenotype"
 
     fig, ax = plt.subplots(figsize=(10, 7))
@@ -154,6 +227,17 @@ def plot_gene_distribution_barplot(df, x_col="gene_symbol", y_col="pct",
 def plot_gene_vs_nontargeting_accuracies(accuracies, gene_counts,
                                          plot_type="boxplot",
                                          save="accuracies.png"):
+    """Plots accuracies for gene vs nontargeting experiments
+
+    Args:
+        accuracies (pandas DataFrame): Accuracies per-gene
+        gene_counts (pandas DataFrame): Counts of number of cells per gene symbol.
+        plot_type (str, optional): Type of plot to display. Defaults to "boxplot".
+        save (str, optional): Path to save file, or None. Defaults to "accuracies.png".
+
+    Returns:
+        pyplot figure: Gene vs nontargeting accuracies figure
+    """
     assert "mean" in accuracies.columns,\
         "'mean' must be a column in DataFrame"
 
@@ -184,6 +268,15 @@ def plot_gene_vs_nontargeting_accuracies(accuracies, gene_counts,
 
 
 def plot_model_comparisons(df, save="model_comp.png"):
+    """Compares multiple models' performance via scatterplot
+
+    Args:
+        df (pandas DataFrame): Model performances
+        save (str, optional): Path to save file, or None. Defaults to "model_comp.png".
+
+    Returns:
+        pyplot figure: Model comparisons figure
+    """
     assert "Test Accuracy" in df.columns,\
         "Must have 'Test Accuracy' in columns"
 
