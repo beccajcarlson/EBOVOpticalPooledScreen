@@ -138,6 +138,7 @@ def train_unsupervised_model(train_dl, test_dl, model, n_epochs=10, lr=0.001):
 
     # Get device to use
     device = get_device()
+    model = model.to(device)
 
     # Loss function
     criterion1 = my_custom_mse
@@ -148,7 +149,7 @@ def train_unsupervised_model(train_dl, test_dl, model, n_epochs=10, lr=0.001):
     # Overall Stats
     losses = []
 
-    pbar = tqdm(range(1, n_epochs+1))
+    pbar = tqdm(range(1, n_epochs + 1))
     for epoch in pbar:
         # Monitor training loss
         train_loss1 = 0.0
