@@ -39,7 +39,8 @@ if __name__ == '__main__':
     with open(reproduce_run, "w") as shell_script:
         shell_script.write(f"#! /bin/bash\npython3 " +
                            f"{os.path.join(active_path, 'genome_wide.py')} " +
-                           f"-s {seed} -p {preds_path} -e {n_epochs} -l {lr}")
+                           f"-s {seed} -p {preds_path} -e {n_epochs} " +
+                           f"-l {lr} -m {metadata_path}")
 
     metadata = pd.read_pickle(metadata_path)
     model = ConvAutoencoder()

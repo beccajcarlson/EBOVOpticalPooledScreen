@@ -133,7 +133,7 @@ def train_unsupervised_model(train_dl, test_dl, model, n_epochs=10, lr=0.001):
         lr (float, optional): Model learning rate. Defaults to 0.001.
 
     Returns:
-        list((float, float)), ConvAutoencoder: Train, Test losses for each epoch and trained model
+        List[(float, float)], ConvAutoencoder: Train, Test losses for each epoch and trained model
     """
 
     # Get device to use

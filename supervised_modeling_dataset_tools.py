@@ -1,7 +1,12 @@
+import copy
 import torch
 import numpy as np
+from tqdm import tqdm
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 from transforms import TRANSFORMS
+from config_tools import get_device
+from model import ConvAutoencoderWithHead
 
 
 def SupervisedCellsDataset(train_labeled_set,
@@ -209,3 +214,161 @@ class SupervisedCellsPseudoDataset:
             labeled_group = self.train_labeled_set
 
         return self.extract_ims_masks(labeled_group, labels=True)
+
+
+def evaluate_model(model, dataset, device, test=True):
+    """Evaluates a model on the test set
+
+    Args:
+        model (model.ConvAutoencoderWithHead): The autoencoder to evaluate
+        dataset (SupervisedCellsPseudoDataset): A dataset of hand-labeled cells
+        device (str): Device on which to perform inference
+        test (bool, optional): Whether to use test images. Defaults to True.
+
+    Returns:
+        float, float, List[int], List[int]: Overall accuracy, balanced accuracy,
+            correct labels, predicted labels
+    """
+    corrects = []
+    pred = []
+
+    model.eval()
+    with torch.no_grad():
+        # Get dataset, predict labels from model
+        images, _, true_labels = dataset.get_dataset(test)
+        images = images.squeeze(0).to(device)
+        _, labels, _ = model(images)
+
+        labels = (labels.argmax(axis=1) + 1).detach().cpu().numpy().ravel()
+
+        pred = labels.tolist()
+        corrects = true_labels.int().tolist()
+    model.train()
+
+    return float(accuracy_score(corrects, pred)),\
+        float(balanced_accuracy_score(corrects, pred)),\
+        corrects, pred
+
+
+def load_supervised_from_unsupervised(pretrained_model_path, hidden_units):
+    """Loads weights from pretrained unsupervised model into supervised model
+
+    Args:
+        pretrained_model_path (str): Path to pretrained ConvAutoencoder state
+        hidden_units (int): Number of hidden units in classification head
+
+    Returns:
+        ConvAutoencoderWithHead: Semi-supervised model with weights preloaded
+    """
+    device = get_device()
+    model = ConvAutoencoderWithHead(hidden=hidden_units)
+    model.apply(ConvAutoencoderWithHead.init_weights)
+    model.load_state_dict(torch.load(pretrained_model_path,
+                                     map_location=device),
+                          strict=False)
+    model.to(device)
+    return model
+
+
+def train_supervised_model(supervised_ds, model, rng, n_epochs=100, fine_tuning=100):
+    """Trains the supervised portion of a semi-supervised autoencoder
+
+    Args:
+        supervised_ds (SupervisedCellsPseudoDataset): A dataset of hand-labeled cells
+        model (model.ConvAutoencoderWithHead): The autoencoder to train
+        rng (np.random.Generator): Random number generator
+        n_epochs (int, optional): Number of epochs to train for. Defaults to 100.
+        fine_tuning (int, optional): Number of iterations of fine-tuning to perform.
+            Defaults to 100.
+
+    Returns:
+        List[float], List[(float, float, float)],
+        ConvAutoencoderWithHead, (ConvAutoencoderWithHead, int),
+        (ConvAutoencoderWithHead, int), (ConvAutoencoderWithHead, int):
+            Model losses per epoch; model accuracy, balanced accuracy, and
+            average accuracy per epoch on test set; final model; model with
+            best test accuracy and epoch attained; model with best balanced
+            test accuracy and epoch attained; model with best average
+            balanced/overall test accuracy and epoch attained
+    """
+
+    # Get device to use
+    device = get_device()
+    model = model.to(device)
+
+    # Loss function
+    criterion2 = torch.nn.NLLLoss()
+
+    # Optimizer
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+    # Overall Stats
+    losses = []
+    accuracies = []
+    best_balanced_model = None
+    best_average_model = None
+    best_acc_model = None
+
+    pbar = tqdm(range(1, n_epochs + 1))
+    for epoch in pbar:
+        # Monitor training loss
+        train_loss2 = 0.0
+
+        # Fine-Tuning Model using labeled dataset
+        for _ in tqdm(range(fine_tuning)):
+            s_images, _, _, s_labels = supervised_ds.get_train_samples()
+
+            # Perform Batch Shuffle
+            tot_batch_size = s_images.shape[0]
+            indices = np.arange(tot_batch_size)
+            rng.shuffle(indices)
+
+            data = s_images[indices]
+            labels = s_labels[indices]
+
+            labels = labels.float().to(device)
+            labeled_indices = torch.nonzero(~labels.isnan()).squeeze(0).to(device)
+            only_labels = labels[labeled_indices].squeeze()
+
+            images = data.to(device)
+
+            optimizer.zero_grad()
+            _, pred_labels, _ = model(images)
+            loss2 = criterion2(pred_labels[labeled_indices].squeeze(),
+                               only_labels.long() - 1)
+            loss2.backward()
+            optimizer.step()
+            train_loss2 += loss2.item()
+
+        model.eval()
+
+        acc, bal_acc, _, _ = evaluate_model(model, supervised_ds,
+                                            device, test=True)
+
+        avg_acc = (acc + bal_acc) / 2
+
+        # Populate list of best models, along with accompanying epoch
+        if (best_acc_model is None) or\
+           (bal_acc >= max(accuracies, key=lambda x: x[0])[0]):
+            best_acc_model = (copy.deepcopy(model), epoch)
+
+        if (best_balanced_model is None) or\
+           (bal_acc >= max(accuracies, key=lambda x: x[1])[1]):
+            best_balanced_model = (copy.deepcopy(model), epoch)
+
+        if (best_average_model is None) or\
+           (avg_acc >= max(accuracies, key=lambda x: x[2])[2]):
+            best_average_model = (copy.deepcopy(model), epoch)
+
+        accuracies.append((acc, bal_acc, avg_acc))
+
+        model.train()
+
+        train_loss2 = train_loss2 / fine_tuning
+        losses.append(train_loss2)
+
+        pbar.set_description('Epoch: {} \tTraining Loss 1: {:.6f}\tTest Accs: {:.4f},{:.4f}'
+                             .format(epoch, train_loss2, acc, bal_acc))
+
+    return losses, accuracies, model,\
+        best_acc_model, best_balanced_model, best_average_model
