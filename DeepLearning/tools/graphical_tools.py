@@ -282,12 +282,12 @@ def plot_model_comparisons(df, save="model_comp.png"):
     Returns:
         pyplot figure: Model comparisons figure
     """
-    assert "Test Accuracy" in df.columns,\
-        "Must have 'Test Accuracy' in columns"
+    assert "Test Accuracy" in df.T.columns,\
+        "Must have 'Test Accuracy' in indices"
 
     fig, ax = plt.subplots(figsize=(15, 7))
     sn.scatterplot(data=df.T.sort_values("Test Accuracy"), ax=ax, s=500)
-    plt.xticks(rotation=45, size=14)
+    plt.xticks(rotation=15, size=14)
     plt.yticks(size=14)
     plt.legend(fontsize=14, loc="upper left")
     plt.xlabel("Model Type", size=18)

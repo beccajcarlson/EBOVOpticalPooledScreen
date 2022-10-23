@@ -10,10 +10,10 @@ from datetime import datetime
 import torch
 import pandas as pd
 
-from cli import validation
-from config_tools import seed_randomness
-from model import ConvAutoencoder
-from unsupervised_modeling_dataset_tools import UnsupervisedCellsDataset, train_unsupervised_model
+from tools.cli import validation
+from tools.config_tools import seed_randomness
+from modeling.model import ConvAutoencoder
+from tools.unsupervised_modeling_dataset_tools import UnsupervisedCellsDataset, train_unsupervised_model
 
 
 if __name__ == '__main__':

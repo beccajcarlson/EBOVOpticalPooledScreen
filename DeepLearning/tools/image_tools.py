@@ -9,7 +9,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 def cell_image(image_tensor, channels=[0, 1, 2, 3, 4, 5],
                channel_names=["DAPI", "FISH", "VP35",
                               "Jun", "Vimentin", "LAMP1"],
-               cmap='viridis', norm_0=False, grad_img=False):
+               cmap='viridis', norm_0=False, grad_img=False,
+               min_=None, max_=None):
     """Generates a figure representing the selected channels of an input image
     The figure shows the channels in the order provided in the input list.
 
@@ -20,6 +21,8 @@ def cell_image(image_tensor, channels=[0, 1, 2, 3, 4, 5],
         cmap (str, optional): Choice of colormap. Defaults to 'viridis'.
         norm_0 (bool, optional): Normalize colors to have center 0. Defaults to False.
         grad_img (bool, optional): Image contains gradients per pixel. Defaults to False.
+        min_ (float, optional): Minimum pixel value per image. Defaults to None.
+        max_ (float, optional): Maximum pixel value per image. Defaults to None.
 
     Returns:
         Matplotlib figure of channels and names
@@ -29,9 +32,6 @@ def cell_image(image_tensor, channels=[0, 1, 2, 3, 4, 5],
 
     fig, ax = plt.subplots(ncols=len(channels), figsize=(5 * len(channels), 5))
 
-    max_ = image_tensor.max()
-    min_ = image_tensor.min()
-
     if len(channels) == 1:
         ax = [ax]
 
@@ -40,14 +40,18 @@ def cell_image(image_tensor, channels=[0, 1, 2, 3, 4, 5],
         if norm_0:
             # If gradient image, min/max normalize across all channels
             if grad_img:
-                divnorm = colors.TwoSlopeNorm(vcenter=0, vmin=min_, vmax=max_)
+                min_c = image_tensor.min()
+                max_c = image_tensor.max()
+                divnorm = colors.TwoSlopeNorm(vcenter=0, vmin=min_c, vmax=max_c)
             else:
                 divnorm = colors.TwoSlopeNorm(vcenter=0)
 
             im = ax[i].imshow(image_tensor[chan, :, :],
-                              cmap=cmap, norm=divnorm)
+                              cmap=cmap, norm=divnorm,
+                              vmin=min_, vmax=max_)
         else:
-            im = ax[i].imshow(image_tensor[chan, :, :], cmap=cmap)
+            im = ax[i].imshow(image_tensor[chan, :, :], cmap=cmap,
+                              vmin=min_, vmax=max_)
 
         ax[i].grid(False)
         ax[i].set_xticks([])
