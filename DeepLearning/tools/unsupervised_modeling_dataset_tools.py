@@ -1,12 +1,17 @@
+import os
+import sys
+import pathlib
+sys.path.append(pathlib.Path(__file__).parents[1].__str__())
+
 import torch
 import numpy as np
 from tqdm import tqdm
 from skimage import io
 
 from torch.utils.data import DataLoader, Dataset
-from config_tools import get_device
-from raw_dataset_tools import fmt_dir
-from model import my_custom_mse
+from tools.config_tools import get_device
+from tools.raw_dataset_tools import fmt_dir
+from modeling.model import my_custom_mse
 
 
 class UnsupervisedCellsDataset(Dataset):

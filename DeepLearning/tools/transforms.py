@@ -1,6 +1,11 @@
+import os
+import sys
+import pathlib
+sys.path.append(pathlib.Path(__file__).parents[1].__str__())
+
 from torchvision import transforms
 
-from image_tools import Rotate, Affine, Flip, Gauss
+from tools.image_tools import Rotate, Affine, Flip, Gauss
 
 
 TRANSFORMS = [transforms.RandomRotation(180),

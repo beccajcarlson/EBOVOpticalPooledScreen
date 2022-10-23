@@ -1,3 +1,8 @@
+import os
+import sys
+import pathlib
+sys.path.append(pathlib.Path(__file__).parents[1].__str__())
+
 import pandas as pd
 import numpy as np
 import torch
@@ -7,9 +12,9 @@ from skimage import io
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-from raw_dataset_tools import fmt_dir
-from modeling_tools import humanize_pred
-from config_tools import get_device
+from tools.raw_dataset_tools import fmt_dir
+from tools.modeling_tools import humanize_pred
+from tools.config_tools import get_device
 
 
 class CellsDataset(Dataset):

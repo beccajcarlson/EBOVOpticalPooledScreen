@@ -1,11 +1,16 @@
+import os
+import sys
+import pathlib
+sys.path.append(pathlib.Path(__file__).parents[1].__str__())
+
 import seaborn as sn
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 
-from processed_dataset_tools import PHENOTYPES
-from graphical_tools_helpers import _display_plot_values_labels,\
+from tools.processed_dataset_tools import PHENOTYPES
+from tools.graphical_tools_helpers import _display_plot_values_labels,\
     _show_values_on_bars
 
 

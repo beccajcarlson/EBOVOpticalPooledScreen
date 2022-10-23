@@ -1,13 +1,16 @@
 import os
+import sys
 import pathlib
+sys.path.append(pathlib.Path(__file__).parents[1].__str__())
+
 from datetime import datetime
 
 import torch
 import pandas as pd
 
-from cli import validation_transfer_learning
-from config_tools import seed_randomness
-from supervised_modeling_dataset_tools import (
+from tools.cli import validation_transfer_learning
+from tools.config_tools import seed_randomness
+from tools.supervised_modeling_dataset_tools import (
     SupervisedCellsDataset,
     train_supervised_model,
     load_supervised_from_unsupervised

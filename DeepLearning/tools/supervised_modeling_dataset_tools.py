@@ -1,12 +1,17 @@
+import os
+import sys
+import pathlib
+sys.path.append(pathlib.Path(__file__).parents[1].__str__())
+
 import copy
 import torch
 import numpy as np
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
-from transforms import TRANSFORMS
-from config_tools import get_device
-from model import ConvAutoencoderWithHead
+from tools.transforms import TRANSFORMS
+from tools.config_tools import get_device
+from modeling.model import ConvAutoencoderWithHead
 
 
 def SupervisedCellsDataset(train_labeled_set,
