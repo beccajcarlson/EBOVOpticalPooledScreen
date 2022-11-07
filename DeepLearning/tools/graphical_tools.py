@@ -10,8 +10,10 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 
 from tools.processed_dataset_tools import PHENOTYPES
-from tools.graphical_tools_helpers import _display_plot_values_labels,\
+from tools.graphical_tools_helpers import (
+    _display_plot_values_labels,
     _show_values_on_bars
+)
 
 
 def generate_heatmap(correct, predicted, save="heatmap.png"):
