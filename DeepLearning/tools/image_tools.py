@@ -6,18 +6,19 @@ from matplotlib import colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def cell_image(image_tensor, channels=[0, 1, 2, 3, 4, 5],
-               channel_names=["DAPI", "FISH", "VP35",
-                              "Jun", "Vimentin", "LAMP1"],
+def cell_image(image_tensor, channels=(0, 1, 2, 3, 4, 5),
+               channel_names=("DAPI", "FISH", "VP35",
+                              "Jun", "Vimentin", "LAMP1"),
                cmap='viridis', norm_0=False, grad_img=False,
                min_=None, max_=None):
     """Generates a figure representing the selected channels of an input image
-    The figure shows the channels in the order provided in the input list.
+    The figure shows the channels in the order provided in the input tuple.
 
     Args:
         image_tensor (Torch tensor or Numpy array): Image with channels as first axis
-        channels (list, optional): Channels to show. Defaults to [0, 1, 2, 3, 4, 5].
-        channel_names (list, optional): Channel names, in order. Defaults to ["DAPI", "FISH", "VP35", "Jun", "Vimentin", "LAMP1"].
+        channels (tuple, optional): Channels to show. Defaults to (0, 1, 2, 3, 4, 5).
+        channel_names (tuple, optional): Channel names, in order.
+            Defaults to ("DAPI", "FISH", "VP35", "Jun", "Vimentin", "LAMP1").
         cmap (str, optional): Choice of colormap. Defaults to 'viridis'.
         norm_0 (bool, optional): Normalize colors to have center 0. Defaults to False.
         grad_img (bool, optional): Image contains gradients per pixel. Defaults to False.
@@ -28,7 +29,7 @@ def cell_image(image_tensor, channels=[0, 1, 2, 3, 4, 5],
         Matplotlib figure of channels and names
     """
     assert len(channels) == len(
-        channel_names), "Channel and Names lists do not match in size"
+        channel_names), "Channel and Names tuples do not match in size"
 
     fig, ax = plt.subplots(ncols=len(channels), figsize=(5 * len(channels), 5))
 

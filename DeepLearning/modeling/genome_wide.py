@@ -3,8 +3,6 @@ import sys
 import pathlib
 sys.path.append(pathlib.Path(__file__).parents[1].__str__())
 
-import os
-import pathlib
 from datetime import datetime
 
 import torch

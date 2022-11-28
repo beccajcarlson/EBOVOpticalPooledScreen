@@ -73,13 +73,16 @@ class ConvAutoencoderWithHead(nn.Module):
     Also used for predicting cell phenotype
     """
 
-    def __init__(self, hidden=256):
+    def __init__(self, hidden=256, only_phenotype=False):
         """Initialize Convolutional Autoencoder
 
         Args:
             hidden (int, optional): Number of hidden units in classification head. Defaults to 256.
+            only_phenotype (bool, optional): Whether to only include phenotype in forward pass.
+                Defaults to False.
         """
         super(ConvAutoencoderWithHead, self).__init__()
+        self.only_phenotype = only_phenotype
 
         # Encoder
         self.conv1 = nn.Conv2d(6, 32, 5, stride=2, padding=2)
@@ -129,6 +132,41 @@ class ConvAutoencoderWithHead(nn.Module):
         x = F.leaky_relu(self.upconv5(x))
         x = self.t_up(x)
 
+        if self.only_phenotype:
+            return y
+        else:
+            return x, y, x_flat
+
+    def _forward_return_all(self, x):
+        """Run `forward` and return output, predicted phenotype, flattened embedding
+
+        Equivalent to `forward` when self.only_phenotype is False
+        """
+        # Encode image
+        x = F.leaky_relu(self.conv1(x))
+        x = F.leaky_relu(self.conv2(x))
+        x = F.leaky_relu(self.conv3(x))
+        x = F.leaky_relu(self.conv4(x))
+        x = F.leaky_relu(self.conv5(x))
+
+        # Obtain latent space representation and apply classifier
+        x_flat = torch.flatten(x, start_dim=1)
+        y = self.lin1(x_flat)
+        y = self.lin2(y)
+        y = self.softmax(y)
+
+        # Decode image
+        x = F.leaky_relu(self.upconv1(x))
+        x = self.t_up(x)
+        x = F.leaky_relu(self.upconv2(x))
+        x = self.t_up(x)
+        x = F.leaky_relu(self.upconv3(x))
+        x = self.t_up(x)
+        x = F.leaky_relu(self.upconv4(x))
+        x = self.t_up(x)
+        x = F.leaky_relu(self.upconv5(x))
+        x = self.t_up(x)
+
         return x, y, x_flat
 
     def forward_only_classifier(self, x_flat):
@@ -138,6 +176,18 @@ class ConvAutoencoderWithHead(nn.Module):
         y = self.lin2(y)
         y = self.softmax(y)
         return y
+
+    def forward_only_encoder(self, x):
+        """Run encoder on an input image, return latent space embedding
+        """
+        x = F.leaky_relu(self.conv1(x))
+        x = F.leaky_relu(self.conv2(x))
+        x = F.leaky_relu(self.conv3(x))
+        x = F.leaky_relu(self.conv4(x))
+        x = F.leaky_relu(self.conv5(x))
+
+        x_flat = torch.flatten(x, start_dim=1)
+        return x_flat
 
     def forward_only_decoder(self, x_flat):
         """Run reconstruction decoder on latent space embedding
@@ -153,6 +203,11 @@ class ConvAutoencoderWithHead(nn.Module):
         x = F.leaky_relu(self.upconv5(x))
         x = self.t_up(x)
         return x
+
+    def forward_only_encoder_decoder(self, x):
+        """Run autoencoder, return only reconstructed image
+        """
+        return self.forward_only_decoder(self.forward_only_encoder(x))
 
 
 def my_custom_mse(output, target, mask):
