@@ -13,12 +13,15 @@ import pandas as pd
 from tools.cli import validation
 from tools.config_tools import seed_randomness
 from modeling.model import ConvAutoencoder
-from tools.unsupervised_modeling_dataset_tools import UnsupervisedCellsDataset, train_unsupervised_model
+from tools.unsupervised_modeling_dataset_tools import (
+    UnsupervisedCellsDataset, train_unsupervised_model, split_dataset
+)
 
 
 if __name__ == '__main__':
     # Use CLI to parse inputs
-    preds_path, metadata_path, seed, n_epochs, lr = validation()
+    preds_path, metadata_path, seed, n_epochs,\
+        lr, test_size, stratify_by_plate = validation()
     rng = seed_randomness(seed)
 
     # Make directory to reproduce model results
@@ -42,15 +45,23 @@ if __name__ == '__main__':
         preds_path = os.path.join(active_path, preds_path)
 
     with open(reproduce_run, "w") as shell_script:
+        stratify_flag = '-n' if (not stratify_by_plate) else ''
         shell_script.write(f"#! /bin/bash\npython3 " +
                            f"{os.path.join(active_path, 'genome_wide.py')} " +
                            f"-s {seed} -p {preds_path} -e {n_epochs} " +
-                           f"-l {lr} -m {metadata_path}")
+                           f"-l {lr} -m {metadata_path} -t {test_size} " +
+                           f"{stratify_flag}")
 
     metadata = pd.read_pickle(metadata_path)
     model = ConvAutoencoder()
-    train_dl = UnsupervisedCellsDataset(metadata, rng, test=False, batch_size=256)
-    test_dl = UnsupervisedCellsDataset(metadata, rng, test=True)
+
+    train_ds, test_ds = split_dataset(metadata, seed=seed,
+                                      test_size=test_size,
+                                      stratify_by_plate=stratify_by_plate)
+
+    train_dl = UnsupervisedCellsDataset(train_ds, rng, test=False,
+                                        cell_size=64, batch_size=256)
+    test_dl = UnsupervisedCellsDataset(test_ds, rng, test=True, cell_size=64)
     losses, trained_model = train_unsupervised_model(train_dl, test_dl,
                                                      model, n_epochs, lr)
 

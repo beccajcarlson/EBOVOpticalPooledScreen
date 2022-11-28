@@ -7,6 +7,7 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from skimage import io
+from sklearn.model_selection import train_test_split
 
 from torch.utils.data import DataLoader, Dataset
 from tools.config_tools import get_device
@@ -18,7 +19,7 @@ class UnsupervisedCellsDataset(Dataset):
     """Dataset for unsupervised cell image extraction from raw files
     """
 
-    def __init__(self, metadata, rng=None, test=False, batch_size=256):
+    def __init__(self, metadata, rng=None, test=False, cell_size=64, batch_size=256):
         """Initialize dataset
 
         metadata should contain each triple of ["plate", "well", "tile"] exactly once,
@@ -38,6 +39,7 @@ class UnsupervisedCellsDataset(Dataset):
         self.batch_size = batch_size
         self.metadata = metadata
         self.test = test
+        self.cell_size = cell_size
 
         if rng is None:
             self.rng = np.random.default_rng()
@@ -72,25 +74,28 @@ class UnsupervisedCellsDataset(Dataset):
 
         # Min-Max scale images across channels
         image = io.imread(img_filename).astype(np.float32)
+        num_channels = image.shape[0]
         image /= np.max(image, axis=(1, 2))[:, np.newaxis, np.newaxis]
         mask = io.imread(mask_filename).astype(np.float32)
-        mask = np.repeat(mask[np.newaxis, ...], 6, axis=0)
+        mask = np.repeat(mask[np.newaxis, ...], num_channels, axis=0)
 
         # Reindex centers to work for numpy stride tricks
-        ind_x = sample_cells - 32
+        cell_size_half = self.cell_size // 2
+        ind_x = sample_cells - cell_size_half
 
         # Stride across image and mask, extracting views of correct size
         multi_slice_image = np.lib.stride_tricks.sliding_window_view(
-            image, (6, 64, 64))
+            image, (num_channels, self.cell_size, self.cell_size))
         multi_slice_mask = np.lib.stride_tricks.sliding_window_view(
-            mask, (6, 64, 64))
+            mask, (num_channels, self.cell_size, self.cell_size))
 
         # Select desired views in mask and image strides
         # Make masks boolean for each image [vectorized]
         temp_masks = multi_slice_mask[0, ind_x[:, 0],
                                       ind_x[:, 1], ...].astype(np.float32)
         temp_masks = np.where(
-            temp_masks == temp_masks[..., 31:32, 31:32], 1, 0)
+            temp_masks == temp_masks[..., (cell_size_half - 1):cell_size_half,
+                                     (cell_size_half - 1):cell_size_half], 1, 0)
         temp_images = multi_slice_image[0,
                                         ind_x[:, 0], ind_x[:, 1], ...] * temp_masks
 
@@ -196,3 +201,46 @@ def train_unsupervised_model(train_dl, test_dl, model, n_epochs=10, lr=0.001):
                              .format(epoch, train_loss1, test_loss1))
 
     return losses, model
+
+
+def split_dataset(metadata, seed, test_size=0.2, stratify_by_plate=True, return_p_w_t=True):
+    """Splits dataset into train and test segments
+
+    Args:
+        metadata (pandas DataFrame): Data to split, expected to have
+            ["plate", "well", "tile"] in columns if stratify_by_plate is True
+        seed (int): Seed for train/test split
+        test_size (float, optional): Size of test set in (0, 1).
+            Defaults to 0.2.
+        stratify_by_plate (bool, optional): Whether to stratify train and test
+            sets by plate. Primarily used for training
+            unsupervised autoencoder. Defaults to True.
+        return_p_w_t (bool, optional): Whether to return a dataframe of unique
+            ["plate", "well", "tile"] triplets. Primarily used for training
+            unsupervised autoencoder. Defaults to True.
+
+    Returns:
+        pandas DataFrame, pandas DataFrame: Train and test DataFrames
+    """
+    assert 0 < test_size < 1,\
+        f"Expected test size in the range (0, 1), got {test_size}"
+
+    if return_p_w_t:
+        all_sample_indices = metadata.groupby(["plate", "well", "tile"])\
+                                     .agg("first")\
+                                     .reset_index()[["plate", "well", "tile"]]
+        dataset_to_split = all_sample_indices
+    else:
+        dataset_to_split = metadata
+
+    if stratify_by_plate:
+        train_ds, test_ds = train_test_split(dataset_to_split,
+                                             test_size=test_size,
+                                             random_state=seed,
+                                             stratify=dataset_to_split["plate"])
+    else:
+        train_ds, test_ds = train_test_split(dataset_to_split,
+                                             test_size=test_size,
+                                             random_state=seed)
+
+    return train_ds, test_ds

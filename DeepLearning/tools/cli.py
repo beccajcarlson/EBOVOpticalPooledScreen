@@ -14,8 +14,12 @@ def cli_genome_wide():
                       help='Learning rate - Default 0.001')
     opts.add_argument('-p', dest='preds_path', default=os.path.join(active_path.parent, "models"),
                       type=str, help=f'Path to save model - Default {os.path.join(active_path.parent, "models")}')
-    opts.add_argument('-m', dest='metadata_path', default="metadata.pkl",
-                      type=str, help='Path to find cell metadata - Default metadata.pkl')
+    opts.add_argument('-t', dest='test_size', default=0.2, type=float,
+                      help='Test set size in (0, 1) - Default 0.2')
+    opts.add_argument('-n', dest='stratify_by_plate', default=True, action='store_false',
+                      help='Set this flag to NOT stratify train and test sets by plate - Default unset')
+    opts.add_argument('-m', dest='metadata_path', default="./data_samples/metadata.pkl",
+                      type=str, help='Path to find cell metadata - Default ./data_samples/metadata.pkl')
     return opts.parse_args()
 
 
@@ -36,8 +40,8 @@ def cli_transfer_learning():
                       help='Path to find test indices - Default test_index.pkl')
     opts.add_argument('-p', dest='preds_path', default=os.path.join(active_path.parent, "models"),
                       type=str, help=f'Path to save trained model - Default {os.path.join(active_path.parent, "models")}')
-    opts.add_argument('-m', dest='metadata_path', default="metadata.pkl",
-                      type=str, help='Path to find cell metadata - Default metadata.pkl')
+    opts.add_argument('-m', dest='metadata_path', default="./data_samples/metadata.pkl",
+                      type=str, help='Path to find cell metadata - Default ./data_samples/metadata.pkl')
     opts.add_argument('-im', dest='cell_images_path', default="images.npy",
                       type=str, help='Path to find cell images - Default images.npy')
     opts.add_argument('-ma', dest='cell_masks_path', default="masks.npy",
@@ -52,7 +56,8 @@ def validation():
         os.mkdir(args.preds_path)
 
     return args.preds_path, args.metadata_path,\
-           int(args.seed), int(args.epochs), float(args.learning_rate)
+        int(args.seed), int(args.epochs), float(args.learning_rate),\
+        float(args.test_size), bool(args.stratify_by_plate)
 
 
 def validation_transfer_learning():
@@ -62,6 +67,6 @@ def validation_transfer_learning():
         os.mkdir(args.preds_path)
 
     return args.preds_path, args.metadata_path, args.train_index,\
-           args.test_index, args.cell_images_path, args.cell_masks_path,\
-           args.pretrained_model, int(args.hidden_units),\
-           int(args.seed), int(args.epochs)
+        args.test_index, args.cell_images_path, args.cell_masks_path,\
+        args.pretrained_model, int(args.hidden_units),\
+        int(args.seed), int(args.epochs)

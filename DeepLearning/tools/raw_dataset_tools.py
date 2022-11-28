@@ -6,7 +6,7 @@ from skimage import io
 from tqdm import tqdm
 
 
-def fmt_dir(plate, well, tile, prefix="./cells/", mask=False, centers=False):
+def fmt_dir(plate, well, tile, prefix="./data_samples/", mask=False, centers=False):
     """Formats filepath for a particular cell
 
     Args:

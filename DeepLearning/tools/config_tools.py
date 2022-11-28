@@ -24,4 +24,4 @@ def get_device():
     Returns:
         str: torch device descriptor
     """
-    return 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    return 'cuda' if torch.cuda.is_available() else 'cpu'
