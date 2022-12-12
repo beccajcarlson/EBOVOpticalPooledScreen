@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 from tools.transforms import TRANSFORMS
 from tools.config_tools import get_device
-from modeling.model import ConvAutoencoderWithHead
+from modeling.model import ConvAutoencoderWithHead, ConvAutoencoder
 
 
 def SupervisedCellsDataset(train_labeled_set,
@@ -267,7 +267,7 @@ def load_supervised_from_unsupervised(pretrained_model_path, hidden_units):
     """
     device = get_device()
     model = ConvAutoencoderWithHead(hidden=hidden_units)
-    model.apply(ConvAutoencoderWithHead.init_weights)
+    model.apply(ConvAutoencoder.init_weights)
     model.load_state_dict(torch.load(pretrained_model_path,
                                      map_location=device),
                           strict=False)
