@@ -56,3 +56,39 @@ if __name__ == '__main__':
     metadata = pd.read_pickle(metadata_path)
 
     model = load_supervised_from_unsupervised(pretrained_model, hidden_units)
+
+    losses, accuracies, final_model, best_acc_model, best_balanced_model, best_average_model =\
+        train_supervised_model(metadata, model, rng, n_epochs)
+
+    final_model_path = os.path.join(model_results_dir,
+                                    "supervised_final_model.pth")
+    torch.save(final_model.state_dict(), final_model_path)
+
+    best_acc_model_path = os.path.join(model_results_dir,
+                                       "supervised_best_accuracy_model.pth")
+    torch.save(best_acc_model.state_dict(), best_acc_model_path)
+
+    best_balanced_model_path = os.path.join(model_results_dir,
+                                            "supervised_best_balanced_model.pth")
+    torch.save(best_balanced_model.state_dict(), best_balanced_model_path)
+
+    best_average_model_path = os.path.join(model_results_dir,
+                                           "supervised_best_average_model.pth")
+    torch.save(best_average_model.state_dict(), best_average_model_path)
+
+    # Generate DataFrame of losses
+    loss_df = pd.DataFrame(losses, columns=["Train Loss"])
+    loss_df = loss_df.reset_index().rename(columns={"index": "Epoch"})
+    loss_df["Epoch"] += 1  # Reindex from 0,... to 1,...
+
+    # Generate DataFrame of accuracies
+    acc_df = pd.DataFrame(accuracies,
+                          columns=["Model Accuracy", "Class Balanced Accuracy", "Average Accuracy"])
+    acc_df = acc_df.reset_index().rename(columns={"index": "Epoch"})
+    acc_df["Epoch"] += 1  # Reindex from 0,... to 1,...
+
+    loss_df_path = os.path.join(model_results_dir, "losses.pkl")
+    loss_df.to_pickle(loss_df_path)
+
+    acc_df_path = os.path.join(model_results_dir, "accuracies.pkl")
+    acc_df.to_pickle(acc_df_path)
