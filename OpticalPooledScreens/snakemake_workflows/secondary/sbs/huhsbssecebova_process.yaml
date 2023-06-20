@@ -1,0 +1,49 @@
+PROCESS_DIRECTORY: '/home/rcarlson/gw/ebovsec/SBS/SECA/process' 
+MAXED_WIDTH: 3
+MODE: 'process'
+#MODE: 'paramsearch_segmentation'
+#MODE: 'paramsearch_read-calling'
+REQUESTED_FILES: [] #['aligned.tif'] 
+REQUESTED_TAGS: ['cells.tif', 'cells.csv','coords_sbs.csv' ]
+# discarded after processing to save space
+TEMP_TAGS: ['aligned.tif', 'maxed.tif', 'std.tif'] 
+
+### INPUT TO ANALYSIS
+INPUT_DIRECTORY: '/home/rcarlson/gw/ebovsec/SBS/SECA'
+INCLUDE_WELLS_TILES: 'all'
+#WELL_TILE_LIST: '/home/rcarlson/gw/ebov/SBS/well_tile_list_b_sbs.csv'
+WELL_TILE_LIST: '/home/rcarlson/gw/ebovsec/SBS/well_tile_list_full_sbs_b.csv'
+BARCODE_TABLE: '/home/rcarlson/gw/ebovsec/SBS/secebovpool.csv'
+MAGNIFICATION: '10X'
+SBS_CYCLES: [0, 1, 2, 3, 4, 5] # cycles to include for analysis
+SBS_CYCLES_FOR_MAPPING: [1, 2, 3, 4, 5, 6] # cycles to include for analysis
+SBS_CYCLE_FORMAT: 'c{cycle}' # python format string
+SBS_INPUT_TAG: 'nd2'
+PERCENTILE_FLAG: True
+PERCENTILE_THRESH: 70
+
+### ANALYSIS PARAMETERS
+NUCLEUS_AREA: [20, 500] # min and max nucleus area in pixels
+THRESHOLD_DAPI: 1600  # threshold for segmenting nuclei
+THRESHOLD_CELL: 3800  # threshold for segmenting cells
+THRESHOLD_READS: 225
+#NUCLEUS_AREA: [[20, 400]] # min and max nucleus area in pixels
+#THRESHOLD_DAPI: [1600, 1800, 2000]  # threshold for segmenting nuclei
+#THRESHOLD_CELL: [3800]  # threshold for segmenting cells
+#THRESHOLD_READS: [100,200,400,500,600,800,1000,1500]
+#THRESHOLD_READS: [25,50,75,100,125,150,175,200,225,250,275,300,325,350,375,400,425,450,475,500,525,550,575,600]  # threshold for detecting reads
+SEGMENT_METHOD: 'cell_2019'
+
+### DISPLAY OPTIONS
+DISPLAY_RANGES:
+  DAPI: [500, 15000]
+  SBS_G: [100, 10000]
+  SBS_T: [100, 20000]
+  SBS_A: [100, 8000]
+  SBS_C: [100, 6000]
+LUTS:
+  DAPI: 'GRAY'
+  SBS_G: 'GREEN'
+  SBS_T: 'RED'
+  SBS_A: 'MAGENTA'
+  SBS_C: 'CYAN'

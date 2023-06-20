@@ -1,0 +1,36 @@
+PROCESS_DIRECTORY: '/home/rcarlson/tb10/ebovsec/SECB/process'
+CORR_FILE: '/home/rcarlson/tb10/ebovsec/secb_illumcorr.tif'
+MODE: 'process'
+#MODE: 'paramsearch_segmentation'
+REQUESTED_FILES: []
+REQUESTED_TAGS: [
+'dapi.csv',
+'fish.csv',
+'vp35.csv',
+'jun.csv',
+'morph.csv',
+'coords.csv'
+    ]
+# discarded after processing to save space
+TEMP_TAGS: ['cytoplasm.tif'] 
+
+### INPUT TO ANALYSIS
+INPUT_DIRECTORY: '/home/rcarlson/tb10/ebovsec/SECB'
+#WELL_TILE_LIST: '/home/rcarlson/tb10/ebovsec/well_tile_list_small_a3.csv'
+WELL_TILE_LIST: '/home/rcarlson/tb10/ebovsec/well_tile_list_a3.csv'
+INCLUDE_WELLS_TILES: 'all' # either 'all' or list of [well,tile] pair lists. If running in either paramsearch modes, sites must be restricted to a subset
+MAGNIFICATION: '40X'
+PHENOTYPE_CYCLE: ['tif']
+
+### ANALYSIS PARAMETERS
+SEGMENT_METHOD: 'cell_2019_select_channels'
+NUCLEUS_AREA: [200, 18000]
+THRESHOLD_DAPI: 4000
+THRESHOLD_CELL: 1525
+#NUCLEUS_AREA: [[200, 18000]] # min and max nucleus area in pixels
+#THRESHOLD_DAPI: [4000]  # threshold for segmenting nuclei
+#THRESHOLD_CELL: [1525]  # threshold for segmenting cells
+#THRESHOLD_READS: 50  # threshold for detecting reads
+
+
+AUTOSCALE_PHENOTYPE: True

@@ -1,0 +1,37 @@
+PROCESS_DIRECTORY: '/home/rcarlson/gw/ebov/Pheno/GWI/process'
+CORR_FILE: '/home/rcarlson/gw/ebov/Pheno/gwi_illumcorr.tif'
+MODE: 'process'
+#MODE: 'paramsearch_segmentation'
+REQUESTED_FILES: []
+REQUESTED_TAGS: [
+'dapi.csv',
+'fish.csv',
+'vp35.csv',
+'jun.csv',
+'vim.csv',
+'lamp1.csv',
+'morph.csv',
+'coords.csv'
+    ]
+# discarded after processing to save space
+TEMP_TAGS: ['cytoplasm.tif'] 
+
+### INPUT TO ANALYSIS
+INPUT_DIRECTORY: '/home/rcarlson/gw/ebov/Pheno/GWI'
+WELL_TILE_LIST: '/home/rcarlson/gw/ebov/Pheno/well_tile_list_i_ph1.csv'
+INCLUDE_WELLS_TILES: 'all' # either 'all' or list of [well,tile] pair lists. If running in either paramsearch modes, sites must be restricted to a subset
+MAGNIFICATION: '20X'
+PHENOTYPE_CYCLE: ['pheno0.tif','pheno1.tif']
+
+### ANALYSIS PARAMETERS
+SEGMENT_METHOD: 'cell_2019_select_channels'
+NUCLEUS_AREA: [90,1200]
+THRESHOLD_DAPI: 1350
+THRESHOLD_CELL: 3000
+#NUCLEUS_AREA: [[90, 1200]] # min and max nucleus area in pixels
+#THRESHOLD_DAPI: [1350]  # threshold for segmenting nuclei
+#THRESHOLD_CELL: [2800]  # threshold for segmenting cells
+#THRESHOLD_READS: 50  # threshold for detecting reads
+
+
+AUTOSCALE_PHENOTYPE: True
