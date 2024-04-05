@@ -7,7 +7,6 @@ import warnings
 import mahotas
 from warnings import catch_warnings,simplefilter
 from scipy.stats import median_abs_deviation, rankdata 
-#from astropy.stats import median_absolute_deviation
 import cv2
 from decorator import decorator
 from mahotas.thresholding import otsu
@@ -2794,7 +2793,7 @@ def save_output(filename, data, **kwargs):
     elif filename.endswith('.png'):
         return save_png(filename, data)
     else:
-        raise ValueError('not a recognized filetype: ' + f)
+        raise ValueError('not a recognized filetype: ' + filename)
 
 
 def load_csv(filename):
