@@ -14,4 +14,6 @@ pip install -r requirements.txt
 python modeling/genome_wide.py -h
 # Train Unsupervised Autoencoder Sample
 python modeling/genome_wide.py -n
-``` 
+```
+
+Runtime will vary depending on the number of epochs but should take no more than several hours on a typical desktop system.
