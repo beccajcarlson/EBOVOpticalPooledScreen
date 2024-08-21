@@ -7,7 +7,8 @@ Optical pooled screen analysis code adapted from Feldman, D., Funk, L. et al Nat
 ## Training an Unsupervised Autoencoder
 To train the unsupervised autoencoder, first clone the repository, then enter this directory, and run the genome_wide.py script. Note that this script will train a model for a specified number of epochs then save the model, losses, and reproducing shell command in a directory named models:
 
-```# Clone repository
+```
+# Clone repository
 git clone https://github.com/beccajcarlson/EBOVOpticalPooledScreen.git EBOVOpticalPooledScreen
 # Enter directory
 cd EBOVOpticalPooledScreen/DeepLearning/
@@ -16,7 +17,8 @@ pip install -r requirements.txt
 # (Optional) View flag options on script
 python modeling/genome_wide.py -h
 # Train Unsupervised Autoencoder Sample
-python modeling/genome_wide.py -n```
+python modeling/genome_wide.py -n
+```
 
 ## OS Requirements
 This package is supported for macOS and Linux. The package has been tested on the following systems:
